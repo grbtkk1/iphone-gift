@@ -96,6 +96,7 @@
 <body class="flex items-center justify-center min-h-screen">
 
     <div id="app-container" class="relative text-center p-4">
+
         <!-- 1. Gift Section -->
         <div id="gift-section">
              <!-- Progress Bar -->
@@ -134,6 +135,7 @@
                  <button id="confirm-button" class="w-full bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg hover:bg-yellow-400 transition-colors duration-300">Confirm</button>
              </div>
         </div>
+
         <!-- 4. Delivery Section (hidden by default) -->
         <div id="delivery-container" class="hidden w-full max-w-lg flex flex-col items-center p-4">
              <dotlottie-wc src="https://lottie.host/6ec7e9f1-f870-477c-9de5-e8d3893312dc/nBsuHGZVJk.lottie" style="width: 100%; max-width: 500px; height: auto;" autoplay loop class="fade-in"></dotlottie-wc>
@@ -181,10 +183,10 @@
                 const spark = document.createElement('div');
                 spark.classList.add('click-spark');
                 const size = Math.random() * 10 + 5; // size between 5px and 15px
-                spark.style.width = ${size}px;
-                spark.style.height = ${size}px;
-                spark.style.left = ${originX}px;
-                spark.style.top = ${originY}px;
+                spark.style.width = `${size}px`;
+                spark.style.height = `${size}px`;
+                spark.style.left = `${originX}px`;
+                spark.style.top = `${originY}px`;
                 document.body.appendChild(spark);
 
                 const angle = Math.random() * 2 * Math.PI;
@@ -194,7 +196,7 @@
 
                 setTimeout(() => {
                     spark.style.opacity = '1';
-                    spark.style.transform = translate(${translateX}px, ${translateY}px) scale(0);
+                    spark.style.transform = `translate(${translateX}px, ${translateY}px) scale(0)`;
                 }, 10);
 
                 setTimeout(() => spark.remove(), 700);
@@ -205,12 +207,13 @@
             const rect = giftBox.getBoundingClientRect();
             const startX = rect.left + rect.width / 2;
             const startY = rect.top + rect.height / 2;
+
             for (let i = 0; i < 100; i++) {
                 const particle = document.createElement('div');
                 particle.classList.add('particle');
-                particle.style.left = ${startX}px;
-                particle.style.top = ${startY}px;
-                particle.style.width = ${Math.random() * 20 + 5}px;
+                particle.style.left = `${startX}px`;
+                particle.style.top = `${startY}px`;
+                particle.style.width = `${Math.random() * 20 + 5}px`;
                 particle.style.height = particle.style.width;
                 const colors = ['#fde047', '#facc15', '#fbbf24', '#f59e0b', '#ffffff'];
                 particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
@@ -225,7 +228,7 @@
 
                 setTimeout(() => {
                     particle.style.opacity = '1';
-                    particle.style.transform = translate(${translateX}px, ${translateY}px) rotate(${rotation}deg) scale(0);
+                    particle.style.transform = `translate(${translateX}px, ${translateY}px) rotate(${rotation}deg) scale(0)`;
                 }, 10);
                 
                 setTimeout(() => particle.remove(), 1100);
@@ -257,7 +260,7 @@
             marker.on('dragend', function(event){
                 var marker = event.target;
                 var position = marker.getLatLng();
-                console.log(New address coordinates: ${position.lat}, ${position.lng});
+                console.log(`New address coordinates: ${position.lat}, ${position.lng}`);
             });
         }
 
@@ -273,7 +276,7 @@
                 const displayMinutes = String(minutes).padStart(2, '0');
                 const displaySeconds = String(seconds).padStart(2, '0');
 
-                timerDisplay.textContent = ${displayMinutes}:${displaySeconds};
+                timerDisplay.textContent = `${displayMinutes}:${displaySeconds}`;
 
                 if (--duration < 0) {
                     clearInterval(timerInterval);
@@ -293,7 +296,7 @@
             createClickSparks();
 
             currentProgress = Math.min(maxProgress, currentProgress + progressPerClick);
-            progressBar.style.width = ${currentProgress}%;
+            progressBar.style.width = `${currentProgress}%`;
 
             if (currentProgress >= maxProgress) {
                 isOpening = true;
@@ -303,6 +306,7 @@
                     giftSection.style.opacity = '0';
                     giftSection.style.transform = 'scale(0.8)';
                 }, 300);
+
                 setTimeout(() => {
                     giftSection.classList.add('hidden');
                     resultContainer.classList.remove('hidden');
@@ -332,3 +336,4 @@
 
 </body>
 </html>
+
