@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Surprise Gift!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Leaflet.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            user-select: none; /* Prevent text selection on rapid clicks */
+            color: #fff;
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #312e81, #0c0a09);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease-in-out infinite;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Bounce animation */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) scale(1, 1); }
+            35% { transform: translateY(-30px) scale(0.9, 1.1); } /* Stretch up */
+            60% { transform: translateY(0) scale(1.2, 0.8); } /* Squish down */
+        }
+        .bounce-animation {
+            animation: bounce 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Final explosion particles */
+        .particle {
+            position: absolute;
+            background-color: #fde047;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            transition: transform 1s cubic-bezier(0.1, 0.8, 0.2, 1), opacity 1s ease-out;
+        }
+        
+        /* Sparks on each click */
+        .click-spark {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #fef08a;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease-out;
+        }
+
+        /* Progress bar styles */
+        .progress-bar-container {
+            width: 80%;
+            max-width: 400px;
+            height: 24px;
+            background-color: #374151;
+            border-radius: 9999px;
+            margin: 0 auto 24px;
+            overflow: hidden;
+            border: 3px solid #4b5563;
+        }
+
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #facc15, #f59e0b);
+            border-radius: 9999px;
+            transition: width 0.15s ease-out;
+        }
+        
+        /* Fade-in animation styles */
+        .fade-in {
+            animation: fadeIn 1s ease-in-out forwards;
+            opacity: 0;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-delay-1 { animation-delay: 0.5s; }
+        .fade-in-delay-2 { animation-delay: 1.2s; }
+
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <div id="app-container" class="relative text-center p-4">
+        <!-- 1. Gift Section -->
+        <div id="gift-section">
+             <!-- Progress Bar -->
+            <div id="progress-container" class="progress-bar-container">
+                <div id="progress-bar" class="progress-bar-fill"></div>
+            </div>
+            <div id="gift-container" class="cursor-pointer transition-transform duration-200 hover:scale-105 active:scale-100">
+                <img id="gift-box" src="https://static.vecteezy.com/system/resources/thumbnails/035/566/895/small_2x/red-gift-box-and-gold-ribbon-chinese-new-year-elements-icon-3d-rendering-png.png" alt="Gift" class="w-[180px] h-[180px] sm:w-[200px] sm:h-[200px] object-contain drop-shadow-lg mx-auto">
+            </div>
+        </div>
+
+        <!-- 2. Result Section (hidden by default) -->
+        <div id="result-container" class="hidden flex flex-col items-center">
+            <img id="iphone-image" src="https://ee-cms-prd-cf.mobilitydevices.prod.digital-ent-int.bt.com/1-iPhone-17-pro-max-cosmic-orange-front-back.png" alt="New iPhone" class="max-w-xs w-64 h-auto drop-shadow-2xl fade-in" onerror="this.src='https://placehold.co/300x400/000000/FFFFFF?text=iPhone+15';">
+            <h1 id="congrats-text" class="text-4xl md:text-5xl font-black mt-6 fade-in fade-in-delay-1">Congratulations!</h1>
+            <p class="text-lg sm:text-xl md:text-2xl text-gray-300 mt-2 fade-in fade-in-delay-1">You've received a new iPhone</p>
+            
+            <button id="claim-button" class="mt-10 bg-gradient-to-r from-yellow-400 to-amber-500 text-gray-900 font-bold text-xl md:text-3xl py-3 px-6 md:py-4 md:px-8 rounded-xl shadow-lg hover:shadow-yellow-400/50 transform hover:scale-105 transition-all duration-300 flex items-center gap-4 fade-in fade-in-delay-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 md:w-10 md:h-10"><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7"/><path d="M12 12v8"/><path d="M12 12H4.5A2.5 2.5 0 0 1 2 9.5v-1A2.5 2.5 0 0 1 4.5 6H12"/><path d="M12 12h7.5A2.5 2.5 0 0 0 22 9.5v-1A2.5 2.5 0 0 0 19.5 6H12"/><path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/><path d="M16 6V3a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v3"/></svg>
+                Claim Now
+            </button>
+        </div>
+
+        <!-- 3. Form Section (hidden by default) -->
+        <div id="form-container" class="hidden w-full max-w-md bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-2xl fade-in">
+             <h2 class="text-xl sm:text-2xl font-bold mb-6 text-center">Enter Delivery Details</h2>
+             <div class="space-y-6">
+                 <div>
+                    <label for="name" class="block text-sm font-medium text-gray-300 mb-1">Your Name</label>
+                    <input type="text" id="name" placeholder="John Doe" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition">
+                 </div>
+                 <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Delivery Address (drag the pin)</label>
+                    <div id="map" class="h-[250px] w-full rounded-lg border-2 border-gray-600 z-0"></div>
+                 </div>
+                 <button id="confirm-button" class="w-full bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg hover:bg-yellow-400 transition-colors duration-300">Confirm</button>
+             </div>
+        </div>
+        <!-- 4. Delivery Section (hidden by default) -->
+        <div id="delivery-container" class="hidden w-full max-w-lg flex flex-col items-center p-4">
+             <dotlottie-wc src="https://lottie.host/6ec7e9f1-f870-477c-9de5-e8d3893312dc/nBsuHGZVJk.lottie" style="width: 100%; max-width: 500px; height: auto;" autoplay loop class="fade-in"></dotlottie-wc>
+             <p class="text-xl md:text-2xl text-gray-300 mt-4 fade-in fade-in-delay-1">Your prize is on its way!</p>
+             <div id="timer" class="font-mono text-6xl sm:text-7xl md:text-8xl font-black text-yellow-400 mt-4 fade-in fade-in-delay-2">
+                30:00
+             </div>
+        </div>
+    </div>
+    
+    <!-- Leaflet.js SCRIPT -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.1/dist/dotlottie-wc.js" type="module"></script>
+    <script>
+        // DOM Elements
+        const giftSection = document.getElementById('gift-section');
+        const giftContainer = document.getElementById('gift-container');
+        const giftBox = document.getElementById('gift-box');
+        const progressBar = document.getElementById('progress-bar');
+        const resultContainer = document.getElementById('result-container');
+        const claimButton = document.getElementById('claim-button');
+        const formContainer = document.getElementById('form-container');
+        const confirmButton = document.getElementById('confirm-button');
+        const deliveryContainer = document.getElementById('delivery-container');
+        const timerDisplay = document.getElementById('timer');
+        
+        // State
+        const maxProgress = 100;
+        const progressPerClick = 5; // 100 / 5 = 20 clicks
+        let currentProgress = 0;
+        let isOpening = false;
+        let timerInterval;
+        let map;
+        let marker;
+        let mapInitialized = false;
+
+        // Functions
+        function createClickSparks() {
+            const rect = giftBox.getBoundingClientRect();
+            const originX = rect.left + rect.width / 2;
+            const originY = rect.top + rect.height / 2;
+
+            for (let i = 0; i < 15; i++) {
+                const spark = document.createElement('div');
+                spark.classList.add('click-spark');
+                const size = Math.random() * 10 + 5; // size between 5px and 15px
+                spark.style.width = ${size}px;
+                spark.style.height = ${size}px;
+                spark.style.left = ${originX}px;
+                spark.style.top = ${originY}px;
+                document.body.appendChild(spark);
+
+                const angle = Math.random() * 2 * Math.PI;
+                const distance = Math.random() * 70 + 40;
+                const translateX = Math.cos(angle) * distance;
+                const translateY = Math.sin(angle) * distance;
+
+                setTimeout(() => {
+                    spark.style.opacity = '1';
+                    spark.style.transform = translate(${translateX}px, ${translateY}px) scale(0);
+                }, 10);
+
+                setTimeout(() => spark.remove(), 700);
+            }
+        }
+
+        function createFinalExplosion() {
+            const rect = giftBox.getBoundingClientRect();
+            const startX = rect.left + rect.width / 2;
+            const startY = rect.top + rect.height / 2;
+            for (let i = 0; i < 100; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                particle.style.left = ${startX}px;
+                particle.style.top = ${startY}px;
+                particle.style.width = ${Math.random() * 20 + 5}px;
+                particle.style.height = particle.style.width;
+                const colors = ['#fde047', '#facc15', '#fbbf24', '#f59e0b', '#ffffff'];
+                particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                document.body.appendChild(particle);
+
+                const angle = Math.random() * 2 * Math.PI;
+                const distance = Math.random() * 300 + 150;
+                const translateX = Math.cos(angle) * distance;
+                const translateY = Math.sin(angle) * distance;
+                const rotation = Math.random() * 720 - 360;
+
+                setTimeout(() => {
+                    particle.style.opacity = '1';
+                    particle.style.transform = translate(${translateX}px, ${translateY}px) rotate(${rotation}deg) scale(0);
+                }, 10);
+                
+                setTimeout(() => particle.remove(), 1100);
+            }
+        }
+
+        function initializeMap() {
+            if (mapInitialized) {
+                 // If map is already initialized, just invalidate its size
+                 // to fix potential rendering issues when the container appears.
+                setTimeout(() => map.invalidateSize(), 0);
+                return;
+            };
+            mapInitialized = true;
+            
+            // Default coordinates (London)
+            const initialCoords = [51.505, -0.09];
+
+            map = L.map('map').setView(initialCoords, 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            marker = L.marker(initialCoords, {
+                draggable: true
+            }).addTo(map);
+
+            marker.on('dragend', function(event){
+                var marker = event.target;
+                var position = marker.getLatLng();
+                console.log(New address coordinates: ${position.lat}, ${position.lng});
+            });
+        }
+
+
+        function startTimer() {
+            clearInterval(timerInterval); // Clear any existing timers
+            let duration = 30 * 60; // 30 minutes in seconds
+
+            timerInterval = setInterval(() => {
+                const minutes = Math.floor(duration / 60);
+                const seconds = duration % 60;
+
+                const displayMinutes = String(minutes).padStart(2, '0');
+                const displaySeconds = String(seconds).padStart(2, '0');
+
+                timerDisplay.textContent = ${displayMinutes}:${displaySeconds};
+
+                if (--duration < 0) {
+                    clearInterval(timerInterval);
+                    timerDisplay.textContent = "00:00";
+                }
+            }, 1000);
+        }
+
+        // Event Listeners
+        giftContainer.addEventListener('click', () => {
+            if (isOpening) return;
+
+            giftBox.classList.remove('bounce-animation');
+            void giftBox.offsetWidth; // Trigger reflow
+            giftBox.classList.add('bounce-animation');
+
+            createClickSparks();
+
+            currentProgress = Math.min(maxProgress, currentProgress + progressPerClick);
+            progressBar.style.width = ${currentProgress}%;
+
+            if (currentProgress >= maxProgress) {
+                isOpening = true;
+                setTimeout(() => {
+                    createFinalExplosion();
+                    giftSection.style.transition = 'opacity 0.3s, transform 0.3s';
+                    giftSection.style.opacity = '0';
+                    giftSection.style.transform = 'scale(0.8)';
+                }, 300);
+                setTimeout(() => {
+                    giftSection.classList.add('hidden');
+                    resultContainer.classList.remove('hidden');
+                    resultContainer.classList.add('flex');
+                }, 600);
+            }
+        });
+
+        claimButton.addEventListener('click', () => {
+             resultContainer.classList.add('hidden');
+             resultContainer.classList.remove('flex');
+             formContainer.classList.remove('hidden');
+             
+             // Initialize map after the container is visible
+             // Use setTimeout to ensure the DOM is ready for map rendering
+             setTimeout(initializeMap, 100);
+        });
+
+        confirmButton.addEventListener('click', () => {
+             formContainer.classList.add('hidden');
+             deliveryContainer.classList.remove('hidden');
+             deliveryContainer.classList.add('flex');
+             startTimer();
+        });
+
+    </script>
+
+</body>
+</html>
